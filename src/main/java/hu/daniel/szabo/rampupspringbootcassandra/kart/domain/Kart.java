@@ -36,4 +36,22 @@ public class Kart {
     public void setNumber(int number) {
         this.number = number;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Kart kart = (Kart) o;
+
+        return number == kart.number && engineSize == kart.engineSize && id.equals(kart.id);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + number;
+        result = 31 * result + engineSize;
+        return result;
+    }
 }

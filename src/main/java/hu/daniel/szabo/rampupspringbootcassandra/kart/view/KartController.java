@@ -38,9 +38,12 @@ public class KartController {
     }
 
     @GetMapping("/kart/{id}")
-    public KartView get(@PathVariable UUID id) {
+    public ResponseEntity<KartView> get(@PathVariable UUID id) {
         Kart kart = kartRepository.findOne(id);
-        return new KartView(kart);
+        if (kart == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(new KartView(kart), HttpStatus.OK);
     }
 
     @PutMapping("/kart")
