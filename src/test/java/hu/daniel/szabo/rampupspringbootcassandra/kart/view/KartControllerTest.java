@@ -16,9 +16,11 @@ import java.util.UUID;
 import hu.daniel.szabo.rampupspringbootcassandra.kart.domain.Kart;
 import hu.daniel.szabo.rampupspringbootcassandra.kart.domain.KartRepository;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -76,7 +78,7 @@ public class KartControllerTest {
     }
 
     @Test
-    public void putKartViewHasNoValidationErrorHttpStatusCode201ShouldBeReturned() throws Exception {
+    public void putKartViewHasNoValidationErrorKartShouldBeSaved() throws Exception {
         KartView validKartView = new KartView();
         validKartView.setNumber(1);
         validKartView.setEngineSize(50);
@@ -87,4 +89,43 @@ public class KartControllerTest {
             .andExpect(status().isCreated());
         verify(kartRepository).save(Mockito.any(Kart.class));
     }
+
+    @Test
+    public void postKartViewHasValidationErrorHttpStatusCode400ShouldBeReturned() throws Exception {
+        KartView invalidKartView = new KartView();
+        UUID dummyUUID = UUID.randomUUID();
+
+        mockMvc.perform(post("/kart/" + dummyUUID)
+                .contentType(MediaType.APPLICATION_JSON).content(gson.toJson(invalidKartView))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+        verifyNoMoreInteractions(kartRepository);
+    }
+
+    @Test
+    public void postKartNotExistWithUUID404ShouldBeReturned() throws Exception {
+        UUID dummyUUID = UUID.randomUUID();
+        Mockito.when(kartRepository.findOne(any(UUID.class))).thenReturn(null);
+
+        mockMvc.perform(get("/kart/" + dummyUUID)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+        verify(kartRepository).findOne(dummyUUID);
+    }
+
+//    @Test
+//    public void postKartViewIsValidKartShouldBeUpdated() throws Exception {
+//        Kart kart = new Kart();
+//        UUID kartId = kart.getId();
+//        Mockito.when(kartRepository.findOne(kartId)).thenReturn(kart);
+//        Stirng stateToUpdateTo =
+//        String expectedContent = gson.toJson(new KartView(kart));
+//
+//        mockMvc.perform(get("/kart/" + kartId)
+//                .accept(MediaType.APPLICATION_JSON)
+//                .contentType(MediaType.APPLICATION_JSON).content(gson.toJson()))
+//                .andExpect(status().isOk())
+//                .andExpect(content().json(expectedContent));
+//        verify(kartRepository).findOne(kartId);
+//    }
 }

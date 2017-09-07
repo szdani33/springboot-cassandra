@@ -59,10 +59,18 @@ public class KartController {
     }
 
     @PostMapping("/kart/{id}")
-    public KartView post(@PathVariable UUID id, @RequestBody KartView kartView) {
+    public ResponseEntity<KartView> post(@PathVariable UUID id, @RequestBody @Valid KartView kartView, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         Kart kart = kartRepository.findOne(id);
+        if (kart == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         kart.setNumber(kartView.getNumber());
-        return kartView;
+        kart.setEngineSize(kartView.getEngineSize());
+        Kart updatedKart = kartRepository.save(kart);
+        return new ResponseEntity<>(new KartView(updatedKart), HttpStatus.OK);
     }
 
     @DeleteMapping("/kart/{id}")
